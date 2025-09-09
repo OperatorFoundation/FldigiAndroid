@@ -3,9 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:versionCode="1"
     android:versionName="1.6.0.1" xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
     <uses-permission android:name="android.permission.BLUETOOTH"></uses-permission>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"></uses-permission>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
     <uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"></uses-permission>
@@ -24,6 +26,7 @@
             android:label="@string/txt_app_name"
             android:theme="@style/Theme.AppCompat"
             android:windowSoftInputMode="stateHidden"
+            android:exported="true"
             android:launchMode="singleTop" >
             <!--  android:launchMode="singleInstance" -->
             <intent-filter>
@@ -45,10 +48,6 @@
         <service
             android:name=".Processor" >
         </service>
-
-        <activity
-            android:name="ar.com.daidalos.afiledialog.FileChooserActivity" >
-        </activity>
 
         <activity
             android:name=".imagePicker" >

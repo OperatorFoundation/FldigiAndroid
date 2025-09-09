@@ -46,12 +46,35 @@
             android:key="modemgeneralCAT"
             android:title="@string/pref_GeneralSettings">
             <ListPreference
-                android:defaultValue="10"
+                android:defaultValue="8"
                 android:entries="@array/volume"
                 android:entryValues="@array/volume_values"
                 android:key="VOLUME"
                 android:summary="@string/pref_ModemVolume"
                 android:title="@string/pref_ModemVolume"></ListPreference>
+            <ListPreference
+                android:defaultValue="0"
+                android:entries="@array/audioinput"
+                android:entryValues="@array/audioinput_values"
+                android:key="AUDIOINPUT"
+                android:summary="Requires Modem Off/On cycling"
+                android:title="Audio Input Source">
+            </ListPreference>
+            <!--
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="AUTOADJUSTMEDIAVOLUME"
+                android:summary="Resets Media Volume before every transmission"
+                android:title="Auto Adjust Media Volume"></CheckBoxPreference>
+                -->
+            <ListPreference
+                android:defaultValue="0.1"
+                android:entries="@array/waterfalldynamic"
+                android:entryValues="@array/waterfalldynamic_values"
+                android:key="WATERFALLGAIN"
+                android:summary="Requires Waterfall Off/On cycling"
+                android:title="Waterfall Dynamic">
+            </ListPreference>
             <EditTextPreference
                 android:defaultValue="1500"
                 android:inputType="number"
@@ -59,7 +82,7 @@
                 android:summary="@string/pref_AudioFrequency"
                 android:title="@string/pref_AudioFrequency"></EditTextPreference>
             <EditTextPreference
-                android:defaultValue="4"
+                android:defaultValue="0"
                 android:key="TUNEDURATION"
                 android:summary="0 = Toggle, OR 1 to 60 Seconds"
                 android:title="Tune Button Tone Duration"></EditTextPreference>
@@ -111,7 +134,6 @@
             <PreferenceScreen
                 android:key="dominoexPS"
                 android:title="@string/pref_DOMINOEX">
-
                 <CheckBoxPreference
                     android:defaultValue="true"
                     android:key="DOMINOEXFILTER"

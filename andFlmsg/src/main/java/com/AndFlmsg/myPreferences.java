@@ -85,10 +85,9 @@ public class myPreferences extends PreferenceActivity {
             }
         };
 
-        AndFlmsg.mysp.registerOnSharedPreferenceChangeListener(AndFlmsg.splistener);
+        if (AndFlmsg.splistener != null ) AndFlmsg.mysp.registerOnSharedPreferenceChangeListener(AndFlmsg.splistener);
 
     }
-
 
 }
 

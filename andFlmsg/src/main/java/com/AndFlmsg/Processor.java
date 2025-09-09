@@ -19,15 +19,14 @@ import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.*;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.Service;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.IBinder;
-import ar.com.daidalos.afiledialog.FileChooserDialog;
+import android.util.Log;
+
+import androidx.activity.result.ActivityResultLauncher;
 
 
 /**
@@ -36,13 +35,13 @@ import ar.com.daidalos.afiledialog.FileChooserDialog;
 public class Processor extends Service {
 
 
-    static String application = "AndFlmsg 1.6.0.7"; // Used to preset an empty status
-    static String version = "Version 1.6.0.7, 20231208";
+    static String application = "AndFlmsg 1.7.0.0"; // Used to preset an empty status
+    static String version = "Version 1.7.0.0, 20250909";
 
     static boolean onWindows = true;
     static String ModemPreamble = "";  // String to send before any Tx Buffer
     static String ModemPostamble = ""; // String to send after any Tx buffer
-    static String HomePath = "";
+    public static String HomePath = "";
     static String Dirprefix = "";
     static final String DirInbox = "Inbox";
     static final String DirDrafts = "Drafts";
@@ -100,6 +99,9 @@ public class Processor extends Service {
     static String TX_Text; // output queue
     // Error handling and logging object
     static loggingclass log;
+
+    //private ActivityResultLauncher<Intent> folderPickerLauncher;
+    //public static final int REQUEST_CODE_OPEN_DOCUMENT_TREE = 101;
 
 
     public static void processor() {
@@ -252,7 +254,7 @@ public class Processor extends Service {
     public static void handlefolderstructure() {
 
         //VK2ETA To-Do: add exception here when there is no external storage
-        final String defaultPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        //final String defaultPath = Environment.getExternalStoragePublicDirectory().getAbsolutePath(); //.getExternalStorageDirectory()
         // are we on Linux/Android OR Windows?
         if (File.separator.equals("/")) {
             Separator = "/";
@@ -268,9 +270,35 @@ public class Processor extends Service {
         //Toast toast = Toast.makeText(AndFlmsg.myContext, "Default: " + HomePath, Toast.LENGTH_LONG);
         //toast.show();
 
-        //Choose the location of the base directory if not defined yet (first run or after de-install)
-        HomePath = config.getPreferenceS("BASEPATH", "");
+        //HomePath = config.getPreferenceS("BASEPATH", "");
+        //Fixed now for Android 13 SAF requirements
+        //File HomePathDir = new File(AndFlmsg.myContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "NBEMS.files"); //.DIRECTORY_DOCUMENTS
+        //File HomePathDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "NBEMS.files");
+        //File HomePathDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File HomePathDir = AndFlmsg.myContext.getFilesDir();
+        HomePath = HomePathDir.getAbsolutePath();
+
+        if (!HomePathDir.exists()) {
+            boolean created = HomePathDir.mkdirs();  // creates directory and any necessary parent dirs
+            if (created) {
+                Log.d("FileAPI", "Directory created at: " + HomePathDir.getAbsolutePath());
+            } else {
+                Log.e("FileAPI", "Failed to create directory");
+            }
+        }
+
+        makeDirectoriesAndCopyForms(HomePath);
+/*
         if (HomePath.length() == 0) {
+
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+                        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION |
+                        Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+                AndFlmsg.folderPickerLauncher.launch(intent);
+        }
+
             AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(AndFlmsg.myContext);
             myAlertDialog.setMessage(AndFlmsg.myContext.getString(R.string.txt_ChooseLocForNbemsFiles));
             myAlertDialog.setCancelable(false);
@@ -297,14 +325,16 @@ public class Processor extends Service {
                         }
                     });
             myAlertDialog.show();
+
         } else {
             makeDirectoriesAndCopyForms(HomePath);
         }
+        */
     }
 
 
     // Handling of selected folder//
-    private static FileChooserDialog.OnFileSelectedListener onFileSelectedListener = new FileChooserDialog.OnFileSelectedListener() {
+ /*   private static FileChooserDialog.OnFileSelectedListener onFileSelectedListener = new FileChooserDialog.OnFileSelectedListener() {
         public void onFileSelected(Dialog source, File file) {
             source.hide();
             //Toast toast = Toast.makeText(AndFlmsg.myContext, "Base Folder Selected: " + file.getAbsoluteFile().getAbsolutePath(), Toast.LENGTH_LONG);
@@ -323,7 +353,7 @@ public class Processor extends Service {
             loggingclass.writelog("ERROR in File Chooser - Should not ask to create file: " + folder.getName() + "/" + name, null, true);
         }
     };
-
+*/
 
     /* Not used
     private static void deleteRecursive(File fileOrDirectory) {
@@ -350,7 +380,7 @@ public class Processor extends Service {
             HomePath = newHomePath;
 
             //Check if base directory exists, create if not
-            File baseDir = new File(HomePath + Dirprefix);
+            File baseDir = new File(HomePath + Dirprefix); //Separator
             if (!baseDir.isDirectory()) {
                 baseDir.mkdir();
             }

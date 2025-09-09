@@ -44,9 +44,22 @@ import android.graphics.Rect;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+//import android.support.v4.app.ActivityCompat;
+//import android.support.v4.app.NotificationCompat;
+//import androidx.core.content.
+//import android.support.v4.app.TaskStackBuilder;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -89,9 +102,6 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v7.app.AppCompatActivity;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.Html;
@@ -142,6 +152,7 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
 import static android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
@@ -278,7 +289,10 @@ public class AndFlmsg extends AppCompatActivity {
     public static ArrayAdapter<String> msgArrayAdapter;
 
     // Need handler for callbacks to the UI thread
-    public static final Handler mHandler = new Handler();
+    //Updated declaration. Resolves delayed updates of the modem screen
+    //public static final Handler mHandler = new Handler();
+    public static final Handler mHandler = new Handler(Looper.getMainLooper());
+
     public static Thread displayMessagesThread = null;
     public static Runnable displayMessagesRunnable = null;
 
@@ -343,7 +357,7 @@ public class AndFlmsg extends AppCompatActivity {
     //Lock for updating the receive display buffer (Concurrent updates with the Modem thread)
     public static final Object lockUSB = new Object();
 
-
+    public static ActivityResultLauncher<Intent> folderPickerLauncher;
 
     // Create runnable for updating the waterfall display
     public static final Runnable updatewaterfall = new Runnable() {
@@ -579,7 +593,7 @@ public class AndFlmsg extends AppCompatActivity {
                         AndFlmsg.mAudioManager.stopBluetoothSco();
                         if (AndFlmsg.mBluetoothAdapter != null) {
                             if (AndFlmsg.mBluetoothAdapter.isEnabled()) {
-                                AndFlmsg.mBluetoothAdapter.disable();
+                                //AndFlmsg.mBluetoothAdapter.disable();
                             }
                         }
                     }
@@ -870,7 +884,8 @@ public class AndFlmsg extends AppCompatActivity {
 
         //Redundant read permission
         // return fineLocationPermit && bluetoothPermit && bluetoothAdminPermit && readExtStoragePermit && writeExtStoragePermit
-        return fineLocationPermit && bluetoothPermit && bluetoothAdminPermit && writeExtStoragePermit
+//        return fineLocationPermit && bluetoothPermit && bluetoothAdminPermit && writeExtStoragePermit
+        return fineLocationPermit && bluetoothPermit && bluetoothAdminPermit // not in post Android 12: && writeExtStoragePermit
                 && recordAudioPermit && modifyAudioSettingsPermit //&& readLogsPermit never granted in later versions of Android
                 && broadcastStickyPermit && internetPermit && readPhoneStatePermit;
     }
@@ -930,6 +945,34 @@ public class AndFlmsg extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /*
+        //initialise the base folder if required
+        folderPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri folderUri = result.getData().getData();
+
+                        // Persist permission
+                        final int takeFlags = result.getData().getFlags()
+                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        getContentResolver().takePersistableUriPermission(folderUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION); //takeFlags);
+
+                        // Store URI for future use
+                        //SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+                        //prefs.edit().putString("FOLDER_URI", folderUri.toString()).apply();
+                        SharedPreferences.Editor editor = AndFlmsg.mysp.edit();
+                        editor.putString("BASEPATH", folderUri.toString());
+                        // Commit the edits!
+                        editor.commit();
+                        Processor.HomePath = config.getPreferenceS("BASEPATH", "");
+
+                        Log.d("FolderSelect", "Folder URI saved: " + folderUri.toString());
+                    }
+                }
+        );
+        */
+
         //Avoid app restart if already running and pressing on the app icon again
         if (!isTaskRoot()) {
             final Intent intent = getIntent();
@@ -944,18 +987,19 @@ public class AndFlmsg extends AppCompatActivity {
 
         //Debug only: Menu hack to force showing the overflow button (aka menu button) on the
         //   action bar EVEN IF there is a hardware button
-        try {
-            ViewConfiguration config = ViewConfiguration.get(this);
-            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+        if (Build.VERSION.SDK_INT < 33) {
+            try {
+                ViewConfiguration config = ViewConfiguration.get(this);
+                @SuppressLint("SoonBlockedPrivateApi") Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
 
-            if (menuKeyField != null) {
-                menuKeyField.setAccessible(true);
-                menuKeyField.setBoolean(config, false);
+                if (menuKeyField != null) {
+                    menuKeyField.setAccessible(true);
+                    menuKeyField.setBoolean(config, false);
+                }
+            } catch (Exception e) {
+                // presumably, not relevant
             }
-        } catch (Exception e) {
-            // presumably, not relevant
         }
-
 
         //Enable progress bar in action bar
         //supportRequestWindowFeature(Window.FEATURE_PROGRESS);
@@ -1025,17 +1069,17 @@ public class AndFlmsg extends AppCompatActivity {
         int myTheme = config.getPreferenceI("APPTHEME", 0);
         switch (myTheme) {
             case 1:
-                setTheme(R.style.andFlmsgStandardDark);
+                myContext.setTheme(R.style.andFlmsgStandardDark);
                 break;
             case 2:
-                setTheme(R.style.andFlmsgStandardLight);
+                myContext.setTheme(R.style.andFlmsgStandardLight);
                 break;
             case 3:
-                setTheme(R.style.andFlmsgSmallScreen);
+                myContext.setTheme(R.style.andFlmsgSmallScreen);
                 break;
             case 0:
             default:
-                setTheme(R.style.andFlmsgStandard);
+                myContext.setTheme(R.style.andFlmsgStandard);
                 break;
         }
 
@@ -1307,7 +1351,7 @@ public class AndFlmsg extends AppCompatActivity {
                 PendingIntent pIntent =
                         stackBuilder.getPendingIntent(
                                 0,
-                                0
+                                PendingIntent.FLAG_IMMUTABLE
                         );
                 mBuilder.setContentIntent(pIntent);
                 myNotification = mBuilder.build();
@@ -1388,7 +1432,7 @@ public class AndFlmsg extends AppCompatActivity {
             if (connection == null && usbPermission == UsbPermission.Unknown && !manager.hasPermission(driver.getDevice())) {
                 //middleToastText("Intent to Request Permission");
                 usbPermission = UsbPermission.Requested;
-                PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(myContext, 0, new Intent(INTENT_ACTION_GRANT_USB), 0);
+                PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(myContext, 0, new Intent(INTENT_ACTION_GRANT_USB), FLAG_IMMUTABLE); //0);
                 manager.requestPermission(driver.getDevice(), usbPermissionIntent);
                 return;
             }
@@ -1652,6 +1696,8 @@ public class AndFlmsg extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         final int myrc = requestCode;
+
+        super.onActivityResult(requestCode, resultCode, data);
 
         //We were editing a CSV data set in an outside app (e.g. OfficeSuite)
         if (myrc == EDIT_CSV_RESULT) {
