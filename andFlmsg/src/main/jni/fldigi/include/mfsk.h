@@ -101,7 +101,6 @@ extern	unsigned char *xmtpicbuff;
 //Android: used in other sections
 extern mfsk *serviceme;
 
-extern bool toneFreqOutput;
 extern void emitToneDescriptor(double freq_hz, int duration_samples);
 extern void flushToneDescriptors();
 

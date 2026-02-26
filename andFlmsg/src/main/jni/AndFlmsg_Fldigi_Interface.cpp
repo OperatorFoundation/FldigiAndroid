@@ -53,8 +53,7 @@ double audioBuffer[24000]; //3 seconds of audio, in case we have a delay in the 
 int sizeOfAudioBuffer = sizeof(audioBuffer) / sizeof(int);
 int audioBufferIndex;
 
-//Tone-frequency output mode for USB serial radios
-bool toneFreqOutput = false;
+//Tone-frequency output for MFSK
 int toneDescriptors[2000];
 int toneDescIndex = 0;
 

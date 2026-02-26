@@ -34,9 +34,6 @@ public class Modem {
     // C++ -> Java callbacks
 
     public static void txModulate(double[] outDBuffer, int length) {
-        if (txModulateListener != null && !stopTX) {
-            txModulateListener.onTxModulate(outDBuffer, length);
-        }
     }
 
     public static void txToneDescriptors(int[] descriptors, int length) {
@@ -60,16 +57,11 @@ public class Modem {
     public static void updatePicture(int[] pictureRow, int width) {
     }
 
-    // Listener interfaces for library consumers
-
-    public interface TxModulateListener {
-        void onTxModulate(double[] samples, int length);
-    }
+    // Listener interface for library consumers
 
     public interface ToneDescriptorListener {
         void onToneDescriptors(int[] descriptors, int length);
     }
 
-    public static TxModulateListener txModulateListener;
     public static ToneDescriptorListener toneDescriptorListener;
 }

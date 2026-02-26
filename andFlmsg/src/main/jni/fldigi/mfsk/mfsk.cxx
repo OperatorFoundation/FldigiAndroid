@@ -955,7 +955,7 @@ void mfsk::transmit(double *buf, int len)
 
 void mfsk::sendsymbol(int sym)
 {
-	double f, phaseincr;
+	double f;
 
 	f = get_txfreq_woffset() - bandwidth / 2;
 
@@ -965,19 +965,7 @@ void mfsk::sendsymbol(int sym)
 
 	double tone_freq = f + sym * tonespacing;
 
-	if (toneFreqOutput) {
-		emitToneDescriptor(tone_freq, symlen);
-		return;
-	}
-
-	phaseincr = TWOPI * tone_freq / samplerate;
-
-	for (int i = 0; i < symlen; i++) {
-		outbuf[i] = cos(phaseacc);
-		phaseacc -= phaseincr;
-		if (phaseacc < 0) phaseacc += TWOPI;
-	}
-	transmit (outbuf, symlen);
+	emitToneDescriptor(tone_freq, symlen);
 }
 
 void mfsk::sendbit(int bit)
@@ -1064,17 +1052,7 @@ void mfsk::flush_xmt_filter(int n)
 	double f1 = get_txfreq_woffset() - bandwidth / 2.0;
 	double f2 = get_txfreq_woffset() + bandwidth / 2.0;
 
-	if (toneFreqOutput) {
-		emitToneDescriptor(reverse ? f2 : f1, n);
-		return;
-	}
-
-	for (int i = 0; i < n; i++) {
-		outbuf[i] = cos(phaseacc);
-		phaseacc += TWOPI * (reverse ? f2 : f1) / samplerate;
-		if (phaseacc > TWOPI) phaseacc -= TWOPI;
-	}
-	transmit (outbuf, tracepair.delay);
+	emitToneDescriptor(reverse ? f2 : f1, n);
 }
 
 void mfsk::send_prologue()

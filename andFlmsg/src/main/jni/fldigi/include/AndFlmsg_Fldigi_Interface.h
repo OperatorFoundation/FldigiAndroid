@@ -23,7 +23,6 @@ extern void change_CModem(int newMode, double newFrequency);
 extern void androidShowRxViewer(int picW, int picH);
 extern void androidSaveLastPicture();
 extern void androidUpdateRxPic(int data, int pos);
-extern bool toneFreqOutput;
 extern void emitToneDescriptor(double freq_hz, int duration_samples);
 extern void flushToneDescriptors();
 
