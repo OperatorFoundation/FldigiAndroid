@@ -5,7 +5,6 @@
 
 package com.AndFlmsg;
 
-import android.annotation.SuppressLint;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
@@ -13,7 +12,6 @@ import java.util.Locale;
 public class CheckSum {
 
 
-    @SuppressLint("DefaultLocale")
     public static String Crc16(String intext) {
         String Encrypted = "0000";
 
