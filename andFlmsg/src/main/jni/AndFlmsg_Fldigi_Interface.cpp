@@ -53,6 +53,11 @@ double audioBuffer[24000]; //3 seconds of audio, in case we have a delay in the 
 int sizeOfAudioBuffer = sizeof(audioBuffer) / sizeof(int);
 int audioBufferIndex;
 
+//Tone-frequency output mode for USB serial radios
+bool toneFreqOutput = false;
+int toneDescriptors[2000];
+int toneDescIndex = 0;
+
 
 //***************** FROM C++ to JAVA ******************
 
@@ -398,6 +403,31 @@ void flushTxSoundBuffer() {
 		gEnv->DeleteLocalRef(jBuffer);
 		gEnv->DeleteLocalRef(cls);
 		audioBufferIndex = 0;
+	}
+}
+
+
+//Emits a tone descriptor (frequency in millihertz, duration in samples) for USB serial output
+void emitToneDescriptor(double freq_hz, int duration_samples) {
+	toneDescriptors[toneDescIndex++] = (int)(freq_hz * 1000);
+	toneDescriptors[toneDescIndex++] = duration_samples;
+
+	if (toneDescIndex >= 2000) {
+		flushToneDescriptors();
+	}
+}
+
+//Flushes accumulated tone descriptors to Java
+void flushToneDescriptors() {
+	if (toneDescIndex > 0) {
+		jclass cls = gEnv->FindClass("com/AndFlmsg/Modem");
+		jmethodID mid = gEnv->GetStaticMethodID(cls, "txToneDescriptors", "([II)V");
+		jintArray jBuffer = gEnv->NewIntArray(toneDescIndex);
+		gEnv->SetIntArrayRegion(jBuffer, 0, toneDescIndex, toneDescriptors);
+		gEnv->CallStaticVoidMethod(cls, mid, jBuffer, toneDescIndex);
+		gEnv->DeleteLocalRef(jBuffer);
+		gEnv->DeleteLocalRef(cls);
+		toneDescIndex = 0;
 	}
 }
 
@@ -790,6 +820,8 @@ Java_com_AndFlmsg_Modem_txCProcess( JNIEnv* env, jclass thishere,
 	}
 	//Flush the tx Sound Buffer
 	flushTxSoundBuffer();
+	//Flush any remaining tone descriptors
+	flushToneDescriptors();
 	//Release the passed parameters
 	//Copied from RadioMSG to avoid seg fault
  	//env->ReleaseByteArrayElements(myjbuffer, txDataBuffer, 0); OR

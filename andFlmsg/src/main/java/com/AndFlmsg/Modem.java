@@ -200,6 +200,19 @@ public class Modem {
     }
 
 
+    //Called from the C++ side with tone descriptors instead of PCM audio
+    public static void txToneDescriptors(int[] descriptors, int length) {
+        if (Modem.stopTX) return;
+        for (int i = 0; i < length; i += 2) {
+            int freqMilliHz = descriptors[i];
+            int durationSamples = descriptors[i + 1];
+            double freqHz = freqMilliHz / 1000.0;
+            double durationMs = durationSamples * 1000.0 / 8000.0;
+            loggingclass.writelog("ToneDesc: " + freqHz + " Hz, " + durationMs + " ms", null, false);
+        }
+    }
+
+
     //Called from the C++ side to echo the transmitted characters
     public static void putEchoChar(int txedChar) {
         Processor.monitor += (char) txedChar;
