@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
 
 group = 'com.github.OperatorFoundation'
 
 android {
+
+    namespace 'com.AndFlmsg'
 
     compileOptions {
         sourceCompatibility 1.8
