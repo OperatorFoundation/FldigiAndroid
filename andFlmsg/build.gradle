@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 group = 'com.github.OperatorFoundation'
 
@@ -15,18 +16,29 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 33
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+
         externalNativeBuild {
             ndkBuild {
-                abiFilters 'armeabi-v7a','arm64-v8a'
                 cFlags "-DHAVE_STRCASESTR"
+                cppFlags '-std=c++14'
             }
         }
-   }
+    }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
         }
     }
 
@@ -38,6 +50,18 @@ android {
 
     lintOptions {
         checkReleaseBuilds false
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.OperatorFoundation'
+                artifactId = 'FldigiAndroid'
+            }
+        }
     }
 }
 
