@@ -15,6 +15,7 @@ LOCAL_SRC_FILES := AndFlmsg_Fldigi_Interface.cpp fldigi/modem.cxx \
 			fldigi/olivia/olivia.cxx \
 			fldigi/contestia/contestia.cxx
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/fldigi/include
+LOCAL_LDLIBS := -llog
 include $(BUILD_SHARED_LIBRARY)
 
 

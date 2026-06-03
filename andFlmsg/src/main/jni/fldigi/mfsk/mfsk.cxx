@@ -971,6 +971,7 @@ void mfsk::sendsymbol(int sym)
 void mfsk::sendbit(int bit)
 {
 	int data = enc->encode(bit);
+
 	for (int i = 0; i < 2; i++) {
 		bitshreg = (bitshreg << 1) | ((data >> i) & 1);
 		bitstate++;

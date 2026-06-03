@@ -534,7 +534,7 @@ Java_com_AndFlmsg_Modem_getModemCapListString(JNIEnv* env, jclass thishere)
 			env->SetObjectArrayElement(returnedArray,j++,env->NewStringUTF(RsidModem->rsid_ids_2[i].name));
 		}
 	}
-//Android debug  env->SetObjectArrayElement(returnedArray,j++,env->NewStringUTF("Bpsk31"));
+	//Android debug  env->SetObjectArrayElement(returnedArray,j++,env->NewStringUTF("Bpsk31"));
 
 	//Finalise the array
 	env->SetObjectArrayElement(returnedArray,j,env->NewStringUTF("END"));
@@ -577,6 +577,25 @@ Java_com_AndFlmsg_Modem_getModemCapListInt(JNIEnv* env, jclass thishere)
 
 	return(returnedArray);
 
+}
+
+//Resolves a mode name to its globals.h enum code. Names map directly to
+//enum constants, so the compiler computes the values — no ordinals are
+//hardcoded anywhere, and there is no dependency on RSID init or the
+//cap-list tables. Returns -1 for an unknown name.
+extern "C" JNIEXPORT jint
+Java_com_AndFlmsg_Modem_getModeCodeByName( JNIEnv* env, jclass thishere, jstring jname)
+{
+	const char* name = env->GetStringUTFChars(jname, NULL);
+	jint result = -1;
+
+	if      (strcmp(name, "MFSK16") == 0) result = MODE_MFSK16;
+	else if (strcmp(name, "MFSK8")  == 0) result = MODE_MFSK8;
+	else if (strcmp(name, "MFSK32") == 0) result = MODE_MFSK32;
+	// add modes here as they are supported — one line each, keyed to the enum
+
+	env->ReleaseStringUTFChars(jname, name);
+	return result;
 }
 
 
@@ -808,10 +827,9 @@ Java_com_AndFlmsg_Modem_txCProcess( JNIEnv* env, jclass thishere,
 	txDataBufferLength = length;
 	//Process the buffer in C++
 	if (active_modem != NULL) {
-		//As there is no idle time in Flmsg context, keep
-		//  processing until we have exhausted the data buffer
-		while (active_modem->tx_process() >= 0){  //Character processing is done in the test
-		}
+		// As there is no idle time in Flmsg context, keep
+		// processing until we have exhausted the data buffer
+		while (active_modem->tx_process() >= 0){ }
 	} else {
 		//Release the passed parameters
 		env->ReleaseByteArrayElements(myjbuffer, txDataBuffer, 0);

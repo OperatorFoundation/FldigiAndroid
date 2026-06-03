@@ -11,6 +11,7 @@ public class Modem {
     }
 
     // JNI native methods — modem engine
+    public native static int getModeCodeByName(String name);
     public native static String createCModem(int modemCode);
     public native static void changeCModem(int modemCode, double newFrequency);
     public native static String initCModem(double frequency);
