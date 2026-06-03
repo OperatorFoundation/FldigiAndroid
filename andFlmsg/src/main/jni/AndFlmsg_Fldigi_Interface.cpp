@@ -589,10 +589,13 @@ Java_com_AndFlmsg_Modem_getModeCodeByName( JNIEnv* env, jclass thishere, jstring
 	const char* name = env->GetStringUTFChars(jname, NULL);
 	jint result = -1;
 
-	if      (strcmp(name, "MFSK16") == 0) result = MODE_MFSK16;
-	else if (strcmp(name, "MFSK8")  == 0) result = MODE_MFSK8;
-	else if (strcmp(name, "MFSK32") == 0) result = MODE_MFSK32;
-	// add modes here as they are supported — one line each, keyed to the enum
+	if      (strcmp(name, "MFSK8")    == 0) result = MODE_MFSK8;
+	else if (strcmp(name, "MFSK16")   == 0) result = MODE_MFSK16;
+	else if (strcmp(name, "MFSK32")   == 0) result = MODE_MFSK32;
+	else if (strcmp(name, "MFSK64")   == 0) result = MODE_MFSK64;
+	else if (strcmp(name, "MFSK128")  == 0) result = MODE_MFSK128;
+	else if (strcmp(name, "MFSK64L")  == 0) result = MODE_MFSK64L;
+	else if (strcmp(name, "MFSK128L") == 0) result = MODE_MFSK128L;
 
 	env->ReleaseStringUTFChars(jname, name);
 	return result;

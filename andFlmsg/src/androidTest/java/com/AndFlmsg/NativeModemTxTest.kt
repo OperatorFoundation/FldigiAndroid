@@ -37,6 +37,33 @@ class NativeModemTxTest {
     }
 
     @Test
+    fun everyToneModeResolvesToValidCode() {
+        for (mode in ToneMode.values()) {
+            assertTrue(
+                "ToneMode.${mode.name} resolved to ${mode.code()} — " +
+                        "no matching case in native getModeCodeByName?",
+                mode.code() >= 0
+            )
+        }
+    }
+
+    @Test
+    fun unknownNameResolvesToMinusOne() {
+        // The contract for an unsupported name is -1, not a thrown error or a
+        // stray valid code. Guards against the native function falling through
+        // to something unexpected.
+        assertEquals(-1, Modem.getModeCodeByName("NOT_A_REAL_MODE"))
+    }
+
+    @Test
+    fun mfsk16ResolvesToKnownCode() {
+        // Anchor test: MFSK16 is the one mode we verified end-to-end, code 31
+        // confirmed from globals.h. If this drifts, the enum/native mapping or
+        // the underlying build changed.
+        assertEquals(31, ToneMode.MFSK16.code())
+    }
+
+    @Test
     fun getModeCodeByName_returnsMfsk16Code() {
         assertEquals(31, Modem.getModeCodeByName("MFSK16"))
     }
