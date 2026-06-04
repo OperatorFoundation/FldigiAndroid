@@ -9,8 +9,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class NativeModemTxTest {
-
+class NativeModemTxTest
+{
     // The native modem uses process-wide static globals, so each test must
     // start from a known-clean state.
     @Before
@@ -69,12 +69,6 @@ class NativeModemTxTest {
     }
 
     @Test
-    fun getModeCodeByName_unknownReturnsMinusOne() {
-        assertEquals(-1, Modem.getModeCodeByName("NOT_A_MODE"))
-    }
-
-
-    @Test
     fun txProcess_emitsToneDescriptors() {
         var callbackCount = 0
         var totalInts = 0
@@ -84,7 +78,7 @@ class NativeModemTxTest {
             totalInts += length
         }
 
-        assertEquals("Modem created", Modem.createCModem(Modem.getModeCodeByName("MFSK16")))
+        assertEquals("Modem created", Modem.createCModem(ToneMode.MFSK16.code()))
         Modem.txInit(MFSK16_CENTER_FREQ_HZ)
 
         val payload = "HELLO".toByteArray()
